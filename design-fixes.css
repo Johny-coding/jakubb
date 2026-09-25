@@ -1,0 +1,179 @@
+/* ============================================================================
+   design-fixes.css — designová kola (1:1 se šablonou, jen detaily)
+   Framer si ownuje inline styly i DOM, proto tu je všechno, co má přežít
+   hydrataci, přes CSS s !important. Pozice nálepek řeší design-fixes.js.
+   ========================================================================== */
+
+/* 1) „Made in Framer“ – pryč (nahradí ji bublina Kontaktovat).
+   Na 1440 ji má šablona skrytou v <iframe>, na užších breakpointech Framer
+   vykreslí reálný prvek __framer-badge-container – musí se skrýt oba. */
+body > iframe[src*="framer.com/edit"],
+#__framer-badge-container,
+[id*="framer-badge"],
+a[href="https://www.framer.com"],
+a[href="https://www.framer.com/"] { display: none !important; }
+
+/* 2) Hero pilulka: kroužek v ní nese oči (jsou součástí designu, i s tím nebem
+      za nimi) a cizí fotka z fotobanky se v něm jen skrývá. Pravidla jsou kvůli
+      ikonce jako data URI inline v index.html – viz blok „Hero pilulka“, jinak by
+      se v náhledu bez přístupových práv na assets ztratila. */
+
+/* 3) Projekty: jen 3 reálné. Která karta je "vymyšlená" se liší breakpoint od
+   breakpointu (šablona překresluje řádky podle variant), proto to řeší JS v
+   design-fixes.js – tady jen ať se skrývat neděsí bliknutím. */
+[data-framer-name="project-row"] > [style*="display: none"] { pointer-events: none; }
+
+/* 3b) Nálepky nesmí sedět přes nadpis. Posun počítá design-fixes.js (změří,
+   kudy je volno) a zapíše ho do --jb-c*-x/y na <html>. Přes custom property to
+   přežije i to, že Framer inline styly elementu přepíše. */
+[data-framer-name="chip-1"] { translate: var(--jb-c1-x, 0px) var(--jb-c1-y, 0px); }
+[data-framer-name="chip-2"] { translate: var(--jb-c2-x, 0px) var(--jb-c2-y, 0px); }
+[data-framer-name="chip-3"] { translate: var(--jb-c3-x, 0px) var(--jb-c3-y, 0px); }
+
+/* 4) Zavírání: červené kolečko v rohu karty je čitelné jako „zavřít“ */
+.framer-Nu9ch > div,
+.framer-Nu9ch > div > div { width: 12px !important; height: 12px !important; border-radius: 50% !important; }
+.framer-Nu9ch > .framer-1c9ke60 {
+  position: relative !important;
+  background: #ff4d4f !important;
+  transition: transform .16s ease;
+}
+.framer-Nu9ch > .framer-1c9ke60 > div { display: none !important; }
+.framer-Nu9ch > .framer-1c9ke60::after {
+  content: "✕";
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font: 700 8px/1 Arial, Helvetica, sans-serif;
+}
+[data-framer-name="Red"]:hover { transform: scale(1.18); }
+
+/* 5) Reference: tváře z fotobanky pryč – anonymní uvozovka v kroužku */
+.jb-av-hide { display: none !important; }
+.jb-av {
+  display: grid !important;
+  place-items: center;
+  background: #f0eaff !important;
+  color: #8168fd !important;
+  font-weight: 700;
+}
+.jb-av::after { content: "„"; font-size: 24px; line-height: 0; transform: translateY(5px); }
+
+/* 6) Bublina „Kontaktovat“ (místo badge) – vpravo dole by byla na CTA, dáme vlevo */
+#jb-contact {
+  position: fixed;
+  left: 22px;
+  bottom: 22px;
+  z-index: 2147483000;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 16px 11px 13px;
+  border-radius: 999px;
+  background: #fff;
+  color: #262626;
+  text-decoration: none;
+  font: 600 13px/1 Inter, "Helvetica Neue", Arial, sans-serif;
+  letter-spacing: .01em;
+  box-shadow: 0 12px 26px rgba(18, 28, 45, .18), 0 0 0 1px rgba(38, 38, 38, .07);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+#jb-contact:hover { transform: translateY(-2px); box-shadow: 0 16px 32px rgba(18, 28, 45, .22), 0 0 0 1px rgba(38, 38, 38, .1); }
+#jb-contact:focus-visible { outline: 3px solid #8168fd; outline-offset: 3px; }
+#jb-contact .jb-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #4dcb63;
+  box-shadow: 0 0 0 0 rgba(77, 203, 99, .55);
+  animation: jb-pulse 2.4s ease-out infinite;
+}
+@keyframes jb-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(77, 203, 99, .5); }
+  70%  { box-shadow: 0 0 0 9px rgba(77, 203, 99, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(77, 203, 99, 0); }
+}
+@media (prefers-reduced-motion: reduce) { #jb-contact .jb-dot { animation: none; } #jb-contact { transition: none; } }
+@media (max-width: 600px) {
+  #jb-contact { left: 12px; bottom: 12px; padding: 9px 13px 9px 11px; font-size: 12px; }
+}
+
+/* 7) Klikatelné karty projektů (šablona s odkazy nepočítá).
+      Karta = odkaz na živý web, otevře se do nového okna (target=_blank,
+      viz design-fixes.js → linkCard). Přes celou kartu leží průhledné <a>,
+      takže se dá kliknout kdekoli, aniž by se změnil vzhled. Vše !important,
+      aby to přežilo inline styly, které Framer po hydrataci přepisuje. */
+.jb-card { cursor: pointer !important; }
+/* polohu (position: relative) nastavuje design-fixes.js – jen když by karta
+   žádnou neměla. Šablona má karty často absolute, to se nesmí přepsat. */
+a.jb-link {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 5 !important;
+  display: block !important;
+  pointer-events: auto !important;
+  border-radius: inherit;
+  background: transparent;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+a.jb-link:focus-visible { outline: 3px solid #8168fd; outline-offset: 3px; border-radius: 12px; }
+
+/* 8) Kontakty: placeholder ikony šablony (mail/telefon) – Jakub je nemá, schová je JS */
+.jb-hidden { display: none !important; }
+.jb-icon img { width: 21px !important; height: 21px !important; }
+a[href].jb-cta { text-decoration: none; color: inherit; }
+
+/* 9) Tlačítko v odpovědi u ceny: „Zjistit cenu konkurence“ */
+a.jb-price-btn {
+  display: inline-flex; align-items: center; gap: 6px; vertical-align: middle;
+  margin: 10px 0 0; padding: 9px 14px; border-radius: 999px; white-space: nowrap;
+  background: #121212; color: #fff; text-decoration: none;
+  font: 600 12.5px/1 Inter, "Helvetica Neue", Arial, sans-serif; letter-spacing: .01em;
+  box-shadow: 0 8px 18px rgba(18, 28, 45, .16), 0 0 0 1px rgba(38, 38, 38, .06);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+a.jb-price-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(18, 28, 45, .22), 0 0 0 1px rgba(38, 38, 38, .1); }
+a.jb-price-btn:focus-visible { outline: 3px solid #8168fd; outline-offset: 3px; }
+a.jb-price-btn::after { content: "→"; font-weight: 700; }
+@media (prefers-reduced-motion: reduce) { a.jb-price-btn { transition: none; } }
+
+/* 10) Přepínač jazyka CZ / EN – vpravo nahoře (i18n.js) */
+#jb-lang {
+  position: fixed;
+  top: 18px;
+  right: 22px;
+  z-index: 2147483001;
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .9);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 24px rgba(18, 28, 45, .16), 0 0 0 1px rgba(38, 38, 38, .07);
+}
+#jb-lang button {
+  all: unset;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  color: #262626;
+  font: 600 12px/1 Inter, "Helvetica Neue", Arial, sans-serif;
+  letter-spacing: .03em;
+  opacity: .55;
+  transition: opacity .15s ease, background .15s ease;
+}
+#jb-lang button svg { border-radius: 3px; box-shadow: 0 0 0 1px rgba(0, 0, 0, .12); display: block; }
+#jb-lang button:hover { opacity: .9; }
+#jb-lang button.on { opacity: 1; background: #262626; color: #fff; }
+#jb-lang button:focus-visible { outline: 2px solid #7ba7d7; outline-offset: 2px; }
+@media (max-width: 809.98px) {
+  #jb-lang { top: 12px; right: 12px; }
+  #jb-lang button { padding: 5px 8px; }
+  #jb-lang button span { display: none; }
+}
+html.jb-i18n-wait body { opacity: 0; }
